@@ -1,0 +1,109 @@
+import face_recognition
+import cv2
+import numpy as np
+import serial
+import time
+
+
+# 아두이노와 시리얼 통신 설정
+arduino = serial.Serial(
+    port='COM15',
+    baudrate=115200
+)
+# 웹캠 스트림 URL 설정
+url = "http://192.168.176.109"
+video_capture = cv2.VideoCapture(url + ":81/stream")
+
+# 샘플 이미지 로드 및 얼굴 인코딩 학습
+obama_image = face_recognition.load_image_file("knowns/obama.jpg")
+obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
+
+biden_image = face_recognition.load_image_file("knowns/biden.jpg")
+biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
+
+# 알려진 얼굴 인코딩과 이름 배열 생성
+known_face_encodings = [
+    obama_face_encoding,
+    biden_face_encoding,
+]
+known_face_names = [
+    "Barack Obama",
+    "Joe Biden",
+]
+known_face_ids = [1, 2]  # 고유 ID 번호: 오바마=1, 바이든=2
+
+# 변수 초기화
+face_locations = []
+face_encodings = []
+face_names = []
+face_ids = []
+process_this_frame = True
+
+while True:
+    # 비디오 프레임을 가져옴
+    ret, frame = video_capture.read()
+
+    # 성능 향상을 위해 매 프레임마다 처리하지 않음
+    if process_this_frame:
+        # 비디오 프레임을 1/4 크기로 조정하여 얼굴 인식 처리 속도 향상
+        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+
+        # 이미지를 BGR 색상(OpenCV 사용)에서 RGB 색상(face_recognition 사용)으로 변환
+        rgb_small_frame = small_frame[:, :, ::-1]
+
+        # 현재 비디오 프레임에서 모든 얼굴과 얼굴 인코딩을 찾음
+        face_locations = face_recognition.face_locations(rgb_small_frame)
+        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+
+        face_names = []
+        face_ids = []
+        for face_encoding in face_encodings:
+            # 알려진 얼굴과의 매칭 확인
+            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+            name = "Unknown"
+            face_id = "0"  # Unknown의 ID는 0
+
+            # 알려진 얼굴 중에서 가장 작은 거리의 얼굴 찾기
+            face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+            best_match_index = np.argmin(face_distances)
+            if matches[best_match_index]:
+                name = known_face_names[best_match_index]
+                face_id = str(known_face_ids[best_match_index])
+
+            face_names.append(name)
+            face_ids.append(face_id)
+            arduino.write(face_id.encode())  # 아두이노에 얼굴 ID 전송
+            time.sleep(0.1)
+    process_this_frame = not process_this_frame
+
+    # 결과를 디스플레이에 표시
+    for (top, right, bottom, left), name, face_id in zip(face_locations, face_names, face_ids):
+        # 검출된 프레임을 원래 크기로 조정
+        top *= 4
+        right *= 4
+        bottom *= 4
+        left *= 4
+
+        # 얼굴 주위에 상자 그리기
+        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+        # 얼굴 아래에 이름과 ID를 표시
+        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+        font = cv2.FONT_HERSHEY_DUPLEX
+        cv2.putText(frame, f"{name} ({face_id})", (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+    # 결과 이미지 디스플레이
+    cv2.imshow('Video', frame)
+
+    # 'q' 키를 누르면 종료
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+if arduino.readable():
+    response = arduino.readline()
+    print(response[:len(response)-1].decode())
+
+
+# 웹캠 핸들 해제
+video_capture.release()
+cv2.destroyAllWindows()
