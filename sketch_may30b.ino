@@ -15,7 +15,7 @@ Stepper Step2(stepsPerRevolution, 7, 5, 6, 4);
 void setup() {
   Step1.setSpeed(60);
   Step2.setSpeed(60);
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
