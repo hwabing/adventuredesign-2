@@ -8,7 +8,7 @@ import time
 # 아두이노와 시리얼 통신 설정
 arduino = serial.Serial(
     port='COM15',
-    baudrate=115200
+    baudrate=9600
 )
 # 웹캠 스트림 URL 설정
 url = "http://192.168.176.109"
@@ -38,6 +38,13 @@ face_encodings = []
 face_names = []
 face_ids = []
 process_this_frame = True
+
+cmd = "S"
+arduino.write(cmd.encode())
+time.sleep(0.1)
+if arduino.readable():
+    response = arduino.readline()
+    print(response[:len(response)-1].decode('utf-8'))
 
 while True:
     # 비디오 프레임을 가져옴
