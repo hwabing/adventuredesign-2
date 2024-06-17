@@ -8,10 +8,11 @@ const int stepsPerRevolution = 1024;
 Stepper Step1(stepsPerRevolution, 11, 9, 10, 8);
 Stepper Step2(stepsPerRevolution, 7, 5, 6, 4);
 
-#define LED1 A1
-#define LED2 A0
-#define btn1 12
-#define btn2 13
+#define button1 12
+#define button2 13
+
+int btn1;
+int btn2;
 
 bool finish = false;
 char data;
@@ -21,10 +22,8 @@ void setup() {
   Step2.setSpeed(25);
   Serial.begin(9600);
 
-  pinMode(LED1, OUTPUT);
-  pinMode(LED2, OUTPUT);
-  pinMode(btn1, INPUT_PULLUP);
-  pinMode(btn2, INPUT_PULLUP);
+  pinMode(button1, INPUT_PULLUP);
+  pinMode(button2, INPUT_PULLUP);
 
   lcd.init();
   lcd.backlight();
@@ -40,6 +39,14 @@ void loop() {
       lcd.print("Recognizing");
       processSerialData();
     }
+  }
+  
+  if (button1 == HIGH) {
+    btn1 == 1;
+  }
+
+  if (button2 == HIGH) {
+    btn2 == 1;
   }
 
   if (finish == true) {
@@ -57,9 +64,7 @@ void processSerialData() {
       break;
       
     case '1':
-      Serial.println("1번");
       Step1.step(stepsPerRevolution / 2);
-      digitalWrite(LED1, HIGH);
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("1_Open");
@@ -68,9 +73,7 @@ void processSerialData() {
       break;
 
     case '2':
-      Serial.println("2번");
       Step2.step(stepsPerRevolution / 2);
-      digitalWrite(LED2, HIGH);
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("2_Open");
@@ -84,23 +87,21 @@ void processSerialData() {
 }
 
 void checkButtons() {
-  if (digitalRead(btn1) == LOW) {
-    Serial.println("1번 잠김");
+  if (btn1 == 1) {
     Step1.step(-stepsPerRevolution / 2);
-    digitalWrite(LED1, LOW);
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("1_Close");
+    btn1 = 0;
     delay(1000);
     resetSystem();
   }
-  else if (digitalRead(btn2) == LOW) {
-    Serial.println("2번 잠김");
+  else if (btn2 == 1) {
     Step2.step(-stepsPerRevolution / 2);
-    digitalWrite(LED2, LOW);
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("2_Close");
+    btn2 = 0;
     delay(1000);
     resetSystem();
   }
@@ -108,8 +109,6 @@ void checkButtons() {
 
 void resetSystem() {
   finish = false;
-  digitalWrite(LED1, LOW);
-  digitalWrite(LED2, LOW);
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Waiting for S");
