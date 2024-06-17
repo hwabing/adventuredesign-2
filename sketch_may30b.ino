@@ -23,7 +23,7 @@ void setup() {
 
 void loop() {
     if (Serial.available()) {      
-      int data = Serial.readString();
+      char data = Serial.readString();
     if (data == 0 && btn1 == 0 && btn2 == 0) {
       Sa();
     }
