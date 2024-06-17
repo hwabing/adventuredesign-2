@@ -4,31 +4,30 @@ import numpy as np
 import serial
 import time
 
-
 # 아두이노와 시리얼 통신 설정
 arduino = serial.Serial(
     port='COM15',
     baudrate=9600
 )
 # 웹캠 스트림 URL 설정
-url = "http://192.168.176.109"
+url = "http://172.18.249.109    "
 video_capture = cv2.VideoCapture(url + ":81/stream")
 
 # 샘플 이미지 로드 및 얼굴 인코딩 학습
 obama_image = face_recognition.load_image_file("knowns/obama.jpg")
 obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
 
-biden_image = face_recognition.load_image_file("knowns/biden.jpg")
-biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
+kth_image = face_recognition.load_image_file("knowns/kth.jpg")
+kth_face_encoding = face_recognition.face_encodings(kth_image)[0]
 
 # 알려진 얼굴 인코딩과 이름 배열 생성
 known_face_encodings = [
     obama_face_encoding,
-    biden_face_encoding,
+    kth_face_encoding,
 ]
 known_face_names = [
     "Barack Obama",
-    "Joe Biden",
+    "KTH",
 ]
 known_face_ids = [1, 2]  # 고유 ID 번호: 오바마=1, 바이든=2
 
@@ -42,9 +41,7 @@ process_this_frame = True
 cmd = "S"
 arduino.write(cmd.encode())
 time.sleep(0.1)
-if arduino.readable():
-    response = arduino.readline()
-    print(response[:len(response)-1].decode('utf-8'))
+
 
 while True:
     # 비디오 프레임을 가져옴
@@ -109,7 +106,6 @@ while True:
 if arduino.readable():
     response = arduino.readline()
     print(response[:len(response)-1].decode())
-
 
 # 웹캠 핸들 해제
 video_capture.release()
