@@ -33,17 +33,17 @@ void loop() {
     else if (data == 2) {
       Sc();
     }
-    else if (btn1 == 1) {
-      Ra();
-    }
-    else if (btn2 == 1) {
-      Rb();   
-    }
     if (button1 == HIGH) {
       btn1 = 1; 
     }
     if (button2 == HIGH) {
       btn2 = 1;
+    }    
+    else if (btn1 == 1) {
+      Ra();
+    }
+    else if (btn2 == 1) {
+      Rb();   
     }
   }
 }
@@ -60,6 +60,7 @@ void Sb() {
   lcd.setCursor(0, 0);
   lcd.print("no.1 rocker open");
   delay(200);    
+  return;
 }
 
 void Sc() { 
@@ -67,6 +68,7 @@ void Sc() {
   lcd.setCursor(0, 0);
   lcd.print("no.2 rocker open");
   delay(200);
+  return;
 }
 
 void Ra() {
