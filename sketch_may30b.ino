@@ -75,6 +75,7 @@ void Ra() {
   lcd.print("no.1 rocker rock");
   btn1 -= 1;
   delay(200);
+  return;
 }
 
 void Rb() {
@@ -83,4 +84,5 @@ void Rb() {
   lcd.print("no.2 rocker rock");
   btn2 -= 1;
   delay(200);
+  return;
 }
